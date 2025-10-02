@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#6366f1">
+  <meta name="theme-color" content="#6366f1">
   <title>Monitor Kehadiran Siswa SDN 2 Karangmangu Sarang</title>
   <style>
     * {
@@ -219,7 +219,6 @@
       color: #6366f1;
     }
 
-    /* PAGINATION STYLES */
     .pagination-wrapper {
       padding: 20px;
       border-top: 1px solid #e2e8f0;
@@ -346,7 +345,37 @@
       font-size: 0.95rem;
     }
 
-    /* Animations */
+    .footer {
+      text-align: center;
+      padding: 24px 16px;
+      margin-top: 24px;
+      color: white;
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    .footer p {
+      margin: 4px 0;
+      opacity: 0.95;
+    }
+
+    .footer .developer {
+      font-weight: 600;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+
+    .footer .brand {
+      font-weight: 700;
+      color: #fbbf24;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+
+    .footer .heart {
+      color: #ef4444;
+      display: inline-block;
+      animation: heartbeat 1.5s ease-in-out infinite;
+    }
+
     @keyframes fadeInDown {
       from {
         opacity: 0;
@@ -374,11 +403,16 @@
       50% { opacity: 0.5; }
     }
 
+    @keyframes heartbeat {
+      0%, 100% { transform: scale(1); }
+      10%, 30% { transform: scale(1.1); }
+      20%, 40% { transform: scale(1); }
+    }
+
     .loading {
       animation: pulse 2s infinite;
     }
 
-    /* Responsive Design */
     @media (max-width: 768px) {
       body {
         padding: 12px;
@@ -425,7 +459,6 @@
         font-size: 13px;
       }
 
-      /* Mobile Card Layout */
       table, thead, tbody, th, td, tr {
         display: block;
       }
@@ -473,11 +506,6 @@
         padding-bottom: 0;
       }
     }
-
-    /* Smooth Transitions */
-    * {
-      transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-    }
   </style>
 </head>
 <body>
@@ -492,7 +520,7 @@
         <div class="search-container">
           <input type="text" id="namaFilter" class="search-input" placeholder="🔍 Cari nama siswa...">
           <input type="text" id="nisFilter" class="search-input" placeholder="🆔 Cari kode siswa...">
-          <input type="date" id="tanggalFilter" class="search-input">
+          <input type="text" id="tanggalFilter" class="search-input" placeholder="📅 Tanggal (BLN/TGL/TAHUN)">
           <select id="tipeFilter" class="search-select">
             <option value="">📋 Semua Tipe</option>
             <option value="Masuk">Masuk</option>
@@ -538,6 +566,11 @@
         
         <div class="pagination" id="pagination"></div>
       </div>
+    </div>
+
+    <div class="footer">
+      <p class="developer">Developed with <span class="heart">❤️</span> by</p>
+      <p class="brand">Doni Yan Ariyanto / RumahKoding</p>
     </div>
   </div>
 
@@ -808,29 +841,38 @@
     function applyFilters() {
       const nis = document.getElementById("nisFilter").value.toLowerCase().trim();
       const nama = document.getElementById("namaFilter").value.toLowerCase().trim();
-      const tanggal = document.getElementById("tanggalFilter").value;
+      const tanggalInput = document.getElementById("tanggalFilter").value.trim();
       const tipe = document.getElementById("tipeFilter").value;
 
       filteredData = allData.filter(d => {
-        // Filter NIS
         const matchNIS = !nis || d.NIS.toLowerCase().includes(nis);
-        
-        // Filter Nama
         const matchNama = !nama || d.Nama.toLowerCase().includes(nama);
         
-        // Filter Tanggal
         let matchTanggal = true;
-        if (tanggal && d.RawTimestamp) {
-          const selectedDate = new Date(tanggal);
-          const dataDate = new Date(d.RawTimestamp);
-          matchTanggal = (
-            dataDate.getFullYear() === selectedDate.getFullYear() &&
-            dataDate.getMonth() === selectedDate.getMonth() &&
-            dataDate.getDate() === selectedDate.getDate()
-          );
+        if (tanggalInput && d.RawTimestamp) {
+          const parts = tanggalInput.split('/');
+          if (parts.length === 3) {
+            let day, month, year;
+            
+            if (parseInt(parts[0]) <= 31 && parseInt(parts[1]) <= 12) {
+              day = parseInt(parts[0]);
+              month = parseInt(parts[1]);
+              year = parseInt(parts[2]);
+            } else {
+              month = parseInt(parts[0]);
+              day = parseInt(parts[1]);
+              year = parseInt(parts[2]);
+            }
+            
+            const dataDate = new Date(d.RawTimestamp);
+            matchTanggal = (
+              dataDate.getFullYear() === year &&
+              dataDate.getMonth() + 1 === month &&
+              dataDate.getDate() === day
+            );
+          }
         }
         
-        // Filter Tipe
         const matchTipe = !tipe || d.Tipe === tipe;
         
         return matchNIS && matchNama && matchTanggal && matchTipe;
@@ -848,7 +890,10 @@
       if (e.key === "Enter") applyFilters();
     });
 
-    document.getElementById("tanggalFilter").addEventListener("change", applyFilters);
+    document.getElementById("tanggalFilter").addEventListener("keypress", function(e) {
+      if (e.key === "Enter") applyFilters();
+    });
+
     document.getElementById("tipeFilter").addEventListener("change", applyFilters);
 
     fetchData();
@@ -864,5 +909,4 @@
   }
 </script>
 </body>
-
 </html>
